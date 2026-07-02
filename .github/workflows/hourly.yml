@@ -1,0 +1,43 @@
+name: Sublet finder
+
+on:
+  push:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest
+
+  hourly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e .
+      - name: Run safely
+        env:
+          ENABLE_AUTO_SEND: ${{ secrets.ENABLE_AUTO_SEND }}
+          GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
+          GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
+          PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
+        run: |
+          if [ "$ENABLE_AUTO_SEND" = "true" ] && [ -n "$GMAIL_CREDENTIALS_JSON" ] && [ -n "$GOOGLE_SHEETS_CREDENTIALS_JSON" ]; then
+            python -m app.main run-once
+            python -m app.main sync-sheets
+          else
+            echo "Hourly job is safe by default. Set ENABLE_AUTO_SEND=true plus Gmail and Sheets secrets to run live."
+            python -m app.main run-once --dry-run
+          fi
+

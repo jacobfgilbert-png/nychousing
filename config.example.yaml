@@ -1,0 +1,47 @@
+search:
+  move_in_date: "2026-10-01"
+  move_in_flex_days: 10
+  min_stay_days: 30
+  max_stay_days: 93
+  max_monthly_price: 2500
+  furnished_required: true
+  room_ok: true
+  whole_place_preferred: true
+  user_has_pets: false
+
+location:
+  commute_target: "Broadway, Astoria, Queens, NY"
+  commute_table_path: "data/nyc_nta_commute_to_broadway_astoria.csv"
+  aliases_path: "data/neighborhood_aliases.yaml"
+  excellent_commute_max_minutes: 45
+  acceptable_commute_max_minutes: 60
+  weak_commute_max_minutes: 75
+  favorite_neighborhoods:
+    - Astoria
+    - Inwood
+    - Jackson Heights
+    - Forest Hills
+
+messaging:
+  mode: "auto_send_clean_email_only"
+  phone_number: ""
+  auto_send_min_score: 80
+  max_auto_sends_per_hour: 5
+  quiet_hours_start: "22:00"
+  quiet_hours_end: "08:00"
+
+gmail:
+  queries:
+    - 'from:(craigslist.org) newer_than:7d'
+    - 'from:(streeteasy.com) newer_than:7d'
+    - '("sublet" OR "furnished") newer_than:7d'
+
+google_sheets:
+  enabled: true
+  spreadsheet_name: "NYC Sublet Finder"
+
+notifications:
+  email_digest: true
+  immediate_min_score: 85
+  digest_min_score: 70
+

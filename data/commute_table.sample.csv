@@ -1,0 +1,8 @@
+nta_name,borough,centroid_lat,centroid_lon,commute_minutes,commute_bucket
+Astoria,Queens,40.7644,-73.9235,18,excellent
+Inwood,Manhattan,40.8677,-73.9212,48,acceptable
+Jackson Heights,Queens,40.7557,-73.8831,31,excellent
+Forest Hills,Queens,40.7181,-73.8448,43,excellent
+Bushwick,Brooklyn,40.6944,-73.9213,68,weak
+Far Rockaway,Queens,40.6040,-73.7554,89,reject
+
