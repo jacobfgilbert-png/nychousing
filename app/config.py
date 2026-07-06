@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -57,6 +58,7 @@ def load_config(path: str | Path = "config.yaml", root: str | Path | None = None
     values = _deepcopy(DEFAULT_CONFIG)
     if config_path.exists():
         values = _deep_merge(values, _load_yaml_like(config_path.read_text(encoding="utf-8")))
+    _apply_env_overrides(values)
     return AppConfig(values=values, root=project_root)
 
 
@@ -134,3 +136,14 @@ def _coerce(value: str) -> Any:
         return int(value)
     except ValueError:
         return value
+
+
+def _apply_env_overrides(values: dict[str, Any]) -> None:
+    if os.getenv("PHONE_NUMBER"):
+        values["messaging"]["phone_number"] = os.environ["PHONE_NUMBER"]
+    if os.getenv("ENABLE_AUTO_SEND", "").lower() == "true":
+        values["messaging"]["mode"] = "auto_send_clean_email_only"
+    if os.getenv("AUTO_SEND_MIN_SCORE"):
+        values["messaging"]["auto_send_min_score"] = int(os.environ["AUTO_SEND_MIN_SCORE"])
+    if os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID"):
+        values["google_sheets"]["spreadsheet_id"] = os.environ["GOOGLE_SHEETS_SPREADSHEET_ID"]

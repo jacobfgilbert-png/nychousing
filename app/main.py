@@ -94,6 +94,9 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
             db.save_raw_email(conn, email)
         listings = process_email(email, config)
         for listing in listings:
+            if not dry_run and listing.status == Status.NEW and listing.contact_email:
+                client.send_email(listing.contact_email, f"Sublet inquiry: {listing.title}", listing.message)
+                listing = mark_sent(listing)
             if not dry_run:
                 db.upsert_listing(conn, listing)
         new_listings.extend(listings)
@@ -149,7 +152,8 @@ def sync_sheets(config: AppConfig, conn, dry_run: bool = False) -> int:
         client.upsert_listings(listings)
         print(f"Dry run: would sync {len(client.rows)} rows to Google Sheets.")
         return 0
-    client = RealSheetsClient(config.section("google_sheets")["spreadsheet_name"])
+    sheets_config = config.section("google_sheets")
+    client = RealSheetsClient(sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id"))
     client.upsert_listings(listings)
     print(f"Synced {len(listings)} rows.")
     return 0

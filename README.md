@@ -52,9 +52,12 @@ Use repository or local environment secrets:
 
 - `GMAIL_CREDENTIALS_JSON`
 - `GOOGLE_SHEETS_CREDENTIALS_JSON`
+- `GOOGLE_SHEETS_SPREADSHEET_ID`, optional if you want to use an existing sheet
 - `GOOGLE_MAPS_API_KEY`, only for one-time commute table generation
 - `PHONE_NUMBER`
 - `ENABLE_AUTO_SEND=true`, only when you want scheduled live sends
+
+`GMAIL_CREDENTIALS_JSON` should be an OAuth authorized-user JSON for the Gmail account receiving alerts, with Gmail read and send access. `GOOGLE_SHEETS_CREDENTIALS_JSON` may be either an OAuth authorized-user JSON or a service-account JSON with Sheets and Drive file access.
 
 ## Commute table
 
