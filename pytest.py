@@ -28,6 +28,10 @@ def main() -> int:
     return 1 if failures else 0
 
 
+def console_main() -> int:
+    return main()
+
+
 def _load_module(path: Path):
     spec = importlib.util.spec_from_file_location(path.stem, path)
     if spec is None or spec.loader is None:
