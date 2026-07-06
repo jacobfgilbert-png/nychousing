@@ -12,6 +12,9 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
 
+[tool.setuptools]
+packages = ["app", "app.parsers"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
@@ -19,4 +22,3 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 140
 target-version = "py312"
-
