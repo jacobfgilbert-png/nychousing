@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 .pytest_cache/
 .gitconfig
+google_authorized_user.json
