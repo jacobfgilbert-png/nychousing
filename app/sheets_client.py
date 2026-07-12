@@ -37,8 +37,14 @@ class RealSheetsClient:
         self.spreadsheet_id = spreadsheet_id or os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID") or self._find_or_create_spreadsheet()
 
     def upsert_listings(self, listings: list[Listing]) -> None:
+        existing = self._existing_rows_by_listing_id()
+        for listing in listings:
+            existing[listing.listing_id] = listing.as_sheet_row()
         rows = [VISIBLE_COLUMNS + INTERNAL_COLUMNS]
-        rows.extend(_row_for_listing(listing) for listing in sorted(listings, key=lambda item: item.score, reverse=True))
+        rows.extend(
+            [row.get(column, "") for column in VISIBLE_COLUMNS + INTERNAL_COLUMNS]
+            for row in sorted(existing.values(), key=lambda item: int(item.get("Score") or 0), reverse=True)
+        )
         self.sheets.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id, range="Listings!A:Z", body={}).execute()
         self.sheets.spreadsheets().values().update(
             spreadsheetId=self.spreadsheet_id,
@@ -47,6 +53,23 @@ class RealSheetsClient:
             body={"values": rows},
         ).execute()
         self._hide_internal_columns()
+
+    def existing_raw_source_ids(self) -> set[str]:
+        return {str(row.get("raw_source_id", "")) for row in self._existing_rows_by_listing_id().values() if row.get("raw_source_id")}
+
+    def _existing_rows_by_listing_id(self) -> dict[str, dict]:
+        response = self.sheets.spreadsheets().values().get(spreadsheetId=self.spreadsheet_id, range="Listings!A:Z").execute()
+        values = response.get("values", [])
+        if len(values) < 2:
+            return {}
+        headers = values[0]
+        rows: dict[str, dict] = {}
+        for value_row in values[1:]:
+            row = {header: value_row[index] if index < len(value_row) else "" for index, header in enumerate(headers)}
+            listing_id = row.get("listing_id")
+            if listing_id:
+                rows[listing_id] = row
+        return rows
 
     def _find_or_create_spreadsheet(self) -> str:
         query = f"name = '{self.spreadsheet_name.replace(chr(39), chr(92) + chr(39))}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false"

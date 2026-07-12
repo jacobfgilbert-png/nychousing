@@ -35,7 +35,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "quiet_hours_start": "22:00",
         "quiet_hours_end": "08:00",
     },
-    "gmail": {"queries": ['from:(craigslist.org) newer_than:7d', 'from:(streeteasy.com) newer_than:7d', '("sublet" OR "furnished") newer_than:7d']},
+    "gmail": {
+        "queries": [
+            'from:(craigslist.org) newer_than:1d -from:(notifications@github.com)',
+            'from:(streeteasy.com) newer_than:1d -from:(notifications@github.com)',
+            '("sublet" OR "furnished") newer_than:1d -from:(notifications@github.com)',
+        ]
+    },
     "google_sheets": {"enabled": True, "spreadsheet_name": "NYC Sublet Finder"},
     "notifications": {"email_digest": True, "immediate_min_score": 85, "digest_min_score": 70},
 }

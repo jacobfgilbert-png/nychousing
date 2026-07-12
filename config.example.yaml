@@ -32,9 +32,9 @@ messaging:
 
 gmail:
   queries:
-    - 'from:(craigslist.org) newer_than:7d'
-    - 'from:(streeteasy.com) newer_than:7d'
-    - '("sublet" OR "furnished") newer_than:7d'
+    - 'from:(craigslist.org) newer_than:1d -from:(notifications@github.com)'
+    - 'from:(streeteasy.com) newer_than:1d -from:(notifications@github.com)'
+    - '("sublet" OR "furnished") newer_than:1d -from:(notifications@github.com)'
 
 google_sheets:
   enabled: true
@@ -44,4 +44,3 @@ notifications:
   email_digest: true
   immediate_min_score: 85
   digest_min_score: 70
-

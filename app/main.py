@@ -86,9 +86,15 @@ def main(argv: list[str] | None = None) -> int:
 
 def run_once(config: AppConfig, conn, dry_run: bool) -> int:
     client = FixtureGmailClient(config.root / "tests" / "fixtures") if dry_run else RealGmailClient()
+    already_synced_raw_ids: set[str] = set()
+    if not dry_run and config.section("google_sheets").get("enabled"):
+        sheets_config = config.section("google_sheets")
+        already_synced_raw_ids = RealSheetsClient(
+            sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id")
+        ).existing_raw_source_ids()
     new_listings: list[Listing] = []
     for email in client.fetch_messages(config.section("gmail")["queries"]):
-        if db.seen_raw_email(conn, email.raw_source_id):
+        if db.seen_raw_email(conn, email.raw_source_id) or email.raw_source_id in already_synced_raw_ids:
             continue
         if not dry_run:
             db.save_raw_email(conn, email)
