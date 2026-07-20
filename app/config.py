@@ -81,6 +81,15 @@ DEFAULT_CONFIG: dict[str, Any] = {
         ],
     },
     "bulk_import": {"enabled": True, "import_dir": "data/imports"},
+    "yerr": {
+        "enabled": True,
+        "base_url": "https://yerr.org/api/listings",
+        "max_price": 2500,
+        "listing_types": ["sublet", "lease_break"],
+        "source_platforms": ["reddit", "facebook", "craigslist", "listingproject"],
+        "limit": 100,
+        "max_pages": 10,
+    },
     "google_sheets": {"enabled": True, "spreadsheet_name": "NYC Sublet Finder"},
     "notifications": {"email_digest": True, "immediate_min_score": 85, "digest_min_score": 70},
 }

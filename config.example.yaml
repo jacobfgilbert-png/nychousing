@@ -65,6 +65,21 @@ bulk_import:
   enabled: true
   import_dir: "data/imports"
 
+yerr:
+  enabled: true
+  base_url: "https://yerr.org/api/listings"
+  max_price: 2500
+  listing_types:
+    - sublet
+    - lease_break
+  source_platforms:
+    - reddit
+    - facebook
+    - craigslist
+    - listingproject
+  limit: 100
+  max_pages: 10
+
 google_sheets:
   enabled: true
   spreadsheet_name: "NYC Sublet Finder"

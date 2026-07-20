@@ -19,6 +19,7 @@ from app.parsers import parse_craigslist, parse_generic, parse_manual, parse_str
 from app.scoring import score_listing
 from app.sheets_client import MemorySheetsClient, MissingSheetsCredentials, RealSheetsClient
 from app.source_client import fetch_configured_source_listings
+from app.yerr_client import fetch_yerr_listings
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -165,6 +166,23 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
         f"failed {source_stats.failed_sources} sources; skipped {skipped_existing_sources} already-seen source listings; "
         f"processed {len(processed_sources)} source listings."
     )
+    yerr_listings, yerr_stats = fetch_yerr_listings(config.section("yerr")) if not dry_run else ([], None)
+    processed_yerr = []
+    skipped_existing_yerr = 0
+    for listing in process_listings(yerr_listings, config):
+        if listing.listing_id in already_synced_listing_ids:
+            skipped_existing_yerr += 1
+            continue
+        if not dry_run:
+            db.upsert_listing(conn, listing)
+        processed_yerr.append(listing)
+    new_listings.extend(processed_yerr)
+    if yerr_stats is not None:
+        print(
+            f"YERR scanned {yerr_stats.fetched_pages} pages; saw {yerr_stats.total_available} matching available listings; "
+            f"fetched {yerr_stats.fetched_items} items; failed {yerr_stats.failed_pages} pages; "
+            f"skipped {skipped_existing_yerr} already-seen YERR listings; processed {len(processed_yerr)} YERR listings."
+        )
     bulk_listings, bulk_stats = import_configured_bulk_listings(config.section("bulk_import"), config.root)
     processed_bulk = []
     skipped_existing_bulk = 0

@@ -7,6 +7,7 @@ Local Python 3.12 MVP for finding furnished NYC sublets for an Oct 1, 2026 move-
 - Reads Gmail alerts or local fixture emails.
 - Parses Craigslist, StreetEasy, Leasebreak, newsletters, and manual pasted text.
 - Bulk-imports CSV, TSV, JSON, JSONL, RSS/XML, HTML, and text listing exports from `data/imports`.
+- Checks YERR automatically for Reddit, Facebook, Craigslist, and Listing Project sublet/lease-break inventory.
 - Normalizes listings into one model.
 - Filters only clear failures: over budget, unfurnished, incompatible dates, or rejected commute.
 - Scores promising listings from 0-100.
@@ -75,6 +76,8 @@ The script computes NTA centroids and calls Google Maps Distance Matrix in trans
 ## Alerts and imports
 
 Set up saved searches or alerts for furnished sublets on Craigslist and StreetEasy. Newsletters or generic alerts work too, as long as the body contains useful price, date, location, link, and contact hints.
+
+The hourly GitHub workflow also checks YERR automatically. YERR aggregates public NYC apartment, sublet, and lease-break listings from Reddit, Facebook, Craigslist, and Listing Project.
 
 For Facebook or copied listing text:
 
