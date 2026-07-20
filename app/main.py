@@ -98,8 +98,15 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
             sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id")
         ).existing_raw_source_ids()
     new_listings: list[Listing] = []
-    for email in client.fetch_messages(config.section("gmail")["queries"]):
+    fetched_emails = client.fetch_messages(config.section("gmail")["queries"])
+    skipped_seen = 0
+    skipped_non_housing = 0
+    for email in fetched_emails:
         if db.seen_raw_email(conn, email.raw_source_id) or email.raw_source_id in already_synced_raw_ids:
+            skipped_seen += 1
+            continue
+        if not is_housing_email(email):
+            skipped_non_housing += 1
             continue
         if not dry_run:
             db.save_raw_email(conn, email)
@@ -111,13 +118,15 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
             if not dry_run:
                 db.upsert_listing(conn, listing)
         new_listings.extend(listings)
+    print(
+        f"Scanned {len(fetched_emails)} Gmail messages; skipped {skipped_non_housing} non-housing; "
+        f"skipped {skipped_seen} already-seen; processed {len(new_listings)} listings."
+    )
     print_summary(new_listings, dry_run=dry_run)
     return 0
 
 
 def process_email(email: RawEmail, config: AppConfig) -> list[Listing]:
-    if not is_housing_email(email):
-        return []
     sender = email.sender.lower()
     if "craigslist" in sender:
         parsed = parse_craigslist(email.body, email.subject)
