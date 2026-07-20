@@ -81,6 +81,11 @@ def main(argv: list[str] | None = None) -> int:
     except (MissingGmailCredentials, MissingSheetsCredentials) as exc:
         print(str(exc))
         return 2
+    except Exception as exc:
+        if _is_google_refresh_error(exc):
+            print("Google credentials are expired or revoked. Re-authorize Google OAuth and update GMAIL_CREDENTIALS_JSON and GOOGLE_SHEETS_CREDENTIALS_JSON.")
+            return 3
+        raise
     return 1
 
 
@@ -191,6 +196,10 @@ def _set_status(conn, listing_id: str, status: Status) -> bool:
         return True
     print("Listing not found.")
     return False
+
+
+def _is_google_refresh_error(exc: Exception) -> bool:
+    return exc.__class__.__name__ == "RefreshError" and "expired or revoked" in str(exc).lower()
 
 
 if __name__ == "__main__":

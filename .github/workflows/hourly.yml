@@ -34,10 +34,23 @@ jobs:
           PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
         run: |
           if [ "$ENABLE_AUTO_SEND" = "true" ] && [ -n "$GMAIL_CREDENTIALS_JSON" ] && [ -n "$GOOGLE_SHEETS_CREDENTIALS_JSON" ]; then
-            python -m app.main run-once
-            python -m app.main sync-sheets
+            python -m app.main run-once || status=$?
+            if [ "${status:-0}" = "3" ]; then
+              echo "::warning::Google OAuth token is expired or revoked. Re-authorize locally and update GMAIL_CREDENTIALS_JSON and GOOGLE_SHEETS_CREDENTIALS_JSON."
+              exit 0
+            fi
+            if [ "${status:-0}" != "0" ]; then
+              exit "$status"
+            fi
+            python -m app.main sync-sheets || status=$?
+            if [ "${status:-0}" = "3" ]; then
+              echo "::warning::Google OAuth token is expired or revoked. Re-authorize locally and update GMAIL_CREDENTIALS_JSON and GOOGLE_SHEETS_CREDENTIALS_JSON."
+              exit 0
+            fi
+            if [ "${status:-0}" != "0" ]; then
+              exit "$status"
+            fi
           else
             echo "Hourly job is safe by default. Set ENABLE_AUTO_SEND=true plus Gmail and Sheets secrets to run live."
             python -m app.main run-once --dry-run
           fi
-
