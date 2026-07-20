@@ -36,11 +36,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "quiet_hours_end": "08:00",
     },
     "gmail": {
+        "max_messages_per_query": 500,
         "queries": [
-            'from:(craigslist.org) newer_than:1d',
-            'from:(streeteasy.com) newer_than:1d',
-            'from:(leasebreak.com) newer_than:1d',
-            '("sublet" OR "furnished apartment" OR "furnished room" OR "short term rental") newer_than:1d',
+            'from:(craigslist.org) newer_than:7d',
+            'from:(streeteasy.com) newer_than:7d',
+            'from:(leasebreak.com) newer_than:7d',
+            '("sublet" OR "furnished apartment" OR "furnished room" OR "short term rental" OR "temporary housing" OR "room available") newer_than:7d',
         ]
     },
     "google_sheets": {"enabled": True, "spreadsheet_name": "NYC Sublet Finder"},

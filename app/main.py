@@ -98,7 +98,8 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
             sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id")
         ).existing_raw_source_ids()
     new_listings: list[Listing] = []
-    fetched_emails = client.fetch_messages(config.section("gmail")["queries"])
+    gmail_config = config.section("gmail")
+    fetched_emails = client.fetch_messages(gmail_config["queries"], int(gmail_config.get("max_messages_per_query", 500)))
     skipped_seen = 0
     skipped_non_housing = 0
     for email in fetched_emails:

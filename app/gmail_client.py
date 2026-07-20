@@ -12,7 +12,7 @@ from app.models import RawEmail
 
 
 class GmailClient(Protocol):
-    def fetch_messages(self, queries: list[str]) -> list[RawEmail]:
+    def fetch_messages(self, queries: list[str], max_messages_per_query: int = 500) -> list[RawEmail]:
         ...
 
     def send_email(self, to: str, subject: str, body: str) -> None:
@@ -27,7 +27,7 @@ class FixtureGmailClient:
     def __init__(self, fixture_dir: str | Path):
         self.fixture_dir = Path(fixture_dir)
 
-    def fetch_messages(self, queries: list[str]) -> list[RawEmail]:
+    def fetch_messages(self, queries: list[str], max_messages_per_query: int = 500) -> list[RawEmail]:
         messages: list[RawEmail] = []
         for path in sorted(self.fixture_dir.glob("*.html")):
             messages.append(
@@ -52,18 +52,33 @@ class RealGmailClient:
             raise MissingGmailCredentials("Missing Gmail credentials. Set GMAIL_CREDENTIALS_JSON before non-dry-run Gmail actions.")
         self.service = _build_gmail_service(credentials_json)
 
-    def fetch_messages(self, queries: list[str]) -> list[RawEmail]:
+    def fetch_messages(self, queries: list[str], max_messages_per_query: int = 500) -> list[RawEmail]:
         seen: set[str] = set()
         messages: list[RawEmail] = []
         for query in queries:
-            response = self.service.users().messages().list(userId="me", q=query, maxResults=25).execute()
-            for item in response.get("messages", []):
-                message_id = item["id"]
-                if message_id in seen:
-                    continue
-                seen.add(message_id)
-                payload = self.service.users().messages().get(userId="me", id=message_id, format="full").execute()
-                messages.append(_raw_email_from_gmail(payload))
+            query_count = 0
+            page_token = None
+            while query_count < max_messages_per_query:
+                response = (
+                    self.service.users()
+                    .messages()
+                    .list(userId="me", q=query, maxResults=min(100, max_messages_per_query - query_count), pageToken=page_token)
+                    .execute()
+                )
+                batch = response.get("messages", [])
+                if not batch:
+                    break
+                for item in batch:
+                    message_id = item["id"]
+                    query_count += 1
+                    if message_id in seen:
+                        continue
+                    seen.add(message_id)
+                    payload = self.service.users().messages().get(userId="me", id=message_id, format="full").execute()
+                    messages.append(_raw_email_from_gmail(payload))
+                page_token = response.get("nextPageToken")
+                if not page_token:
+                    break
         return messages
 
     def send_email(self, to: str, subject: str, body: str) -> None:
