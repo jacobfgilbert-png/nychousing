@@ -61,7 +61,14 @@ def _read_feed(url: str, fixture_dir: Path | None = None) -> str:
     if fixture_dir is not None:
         fixture_path = fixture_dir / url
         return fixture_path.read_text(encoding="utf-8")
-    request = urllib.request.Request(url, headers={"User-Agent": "nyc-sublet-finder/0.1"})
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36",
+            "Accept": "application/rss+xml,application/xml,text/xml,text/html;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+    )
     with urllib.request.urlopen(request, timeout=30) as response:
         return response.read().decode("utf-8", errors="replace")
 

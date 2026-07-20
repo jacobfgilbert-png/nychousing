@@ -246,7 +246,17 @@ def is_housing_email(email: RawEmail) -> bool:
     trusted_sources = ["craigslist.org", "streeteasy.com", "leasebreak.com"]
     if any(source in sender for source in trusted_sources):
         return True
-    housing_terms = ["sublet", "furnished apartment", "furnished room", "short term rental", "short-term rental", "room available"]
+    housing_terms = [
+        "sublet",
+        "sublease",
+        "furnished apartment",
+        "furnished room",
+        "short term rental",
+        "short-term rental",
+        "temporary housing",
+        "room available",
+        "lease takeover",
+    ]
     noise_terms = ["security alert", "sign-in", "password", "github actions", "workflow"]
     text = f"{subject}\n{body}"
     return any(term in text for term in housing_terms) and not any(term in text for term in noise_terms)

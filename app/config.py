@@ -36,12 +36,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "quiet_hours_end": "08:00",
     },
     "gmail": {
-        "max_messages_per_query": 500,
+        "max_messages_per_query": 1000,
         "queries": [
-            'from:(craigslist.org) newer_than:7d',
-            'from:(streeteasy.com) newer_than:7d',
-            'from:(leasebreak.com) newer_than:7d',
-            '("sublet" OR "furnished apartment" OR "furnished room" OR "short term rental" OR "temporary housing" OR "room available") newer_than:7d',
+            'from:(craigslist.org) newer_than:30d',
+            'from:(streeteasy.com) newer_than:30d',
+            'from:(leasebreak.com) newer_than:30d',
+            'from:(listingsproject.com) newer_than:30d',
+            '("sublet" OR "sublease" OR "furnished apartment" OR "furnished room" OR "short term rental" OR "short-term rental" OR "temporary housing" OR "room available") newer_than:30d',
         ]
     },
     "web_sources": {
