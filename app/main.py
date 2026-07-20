@@ -116,6 +116,8 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
 
 
 def process_email(email: RawEmail, config: AppConfig) -> list[Listing]:
+    if not is_housing_email(email):
+        return []
     sender = email.sender.lower()
     if "craigslist" in sender:
         parsed = parse_craigslist(email.body, email.subject)
@@ -135,8 +137,9 @@ def process_listings(listings: list[Listing], config: AppConfig) -> list[Listing
         listing = apply_location(listing, config)
         listing = apply_filters(listing, config)
         listing = score_listing(listing, config)
-        listing.message = build_message(listing, config)
-        listing = prepare_outbox(listing, config)
+        if listing.status != Status.REJECTED:
+            listing.message = build_message(listing, config)
+            listing = prepare_outbox(listing, config)
         processed.append(listing)
     return processed
 
@@ -200,6 +203,23 @@ def _set_status(conn, listing_id: str, status: Status) -> bool:
 
 def _is_google_refresh_error(exc: Exception) -> bool:
     return exc.__class__.__name__ == "RefreshError" and "expired or revoked" in str(exc).lower()
+
+
+def is_housing_email(email: RawEmail) -> bool:
+    sender = email.sender.lower()
+    subject = email.subject.lower()
+    body = email.body.lower()
+    if any(blocked in sender for blocked in ["github.com", "google.com", "accounts.google.com", "myaccount.google.com"]):
+        return False
+    if any(blocked in body for blocked in ["myaccount.google.com/notifications", "github.com/notifications", "github.com/jacobfgilbert-png/nychousing/actions"]):
+        return False
+    trusted_sources = ["craigslist.org", "streeteasy.com", "leasebreak.com"]
+    if any(source in sender for source in trusted_sources):
+        return True
+    housing_terms = ["sublet", "furnished apartment", "furnished room", "short term rental", "short-term rental", "room available"]
+    noise_terms = ["security alert", "sign-in", "password", "github actions", "workflow"]
+    text = f"{subject}\n{body}"
+    return any(term in text for term in housing_terms) and not any(term in text for term in noise_terms)
 
 
 if __name__ == "__main__":

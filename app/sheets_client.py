@@ -37,9 +37,14 @@ class RealSheetsClient:
         self.spreadsheet_id = spreadsheet_id or os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID") or self._find_or_create_spreadsheet()
 
     def upsert_listings(self, listings: list[Listing]) -> None:
-        existing = self._existing_rows_by_listing_id()
+        existing = {
+            listing_id: row
+            for listing_id, row in self._existing_rows_by_listing_id().items()
+            if _dashboard_row_is_actionable(row)
+        }
         for listing in listings:
-            existing[listing.listing_id] = listing.as_sheet_row()
+            if _listing_is_actionable(listing):
+                existing[listing.listing_id] = listing.as_sheet_row()
         rows = [VISIBLE_COLUMNS + INTERNAL_COLUMNS]
         rows.extend(
             [row.get(column, "") for column in VISIBLE_COLUMNS + INTERNAL_COLUMNS]
@@ -125,3 +130,19 @@ def _build_google_services(credentials_json: str):
 def _row_for_listing(listing: Listing) -> list:
     row = listing.as_sheet_row()
     return [row.get(column, "") for column in VISIBLE_COLUMNS + INTERNAL_COLUMNS]
+
+
+def _listing_is_actionable(listing: Listing) -> bool:
+    return listing.status.value not in {"rejected", "duplicate"} and bool(listing.url or listing.contact_email or listing.score > 0)
+
+
+def _dashboard_row_is_actionable(row: dict) -> bool:
+    status = str(row.get("Status", "")).lower()
+    score = int(row.get("Score") or 0)
+    link = str(row.get("Link", ""))
+    source = str(row.get("Source", "")).lower()
+    if status in {"rejected", "duplicate"}:
+        return False
+    if "myaccount.google.com" in link or "github.com" in link:
+        return False
+    return score > 0 or source in {"craigslist", "streeteasy", "leasebreak"}

@@ -37,9 +37,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
     "gmail": {
         "queries": [
-            'from:(craigslist.org) newer_than:1d -from:(notifications@github.com)',
-            'from:(streeteasy.com) newer_than:1d -from:(notifications@github.com)',
-            '("sublet" OR "furnished") newer_than:1d -from:(notifications@github.com)',
+            'from:(craigslist.org) newer_than:1d',
+            'from:(streeteasy.com) newer_than:1d',
+            'from:(leasebreak.com) newer_than:1d',
+            '("sublet" OR "furnished apartment" OR "furnished room" OR "short term rental") newer_than:1d',
         ]
     },
     "google_sheets": {"enabled": True, "spreadsheet_name": "NYC Sublet Finder"},
