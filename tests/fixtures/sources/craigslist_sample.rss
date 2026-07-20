@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>craigslist sample</title>
+    <item>
+      <title>Furnished Astoria sublet Oct 1 - $2100</title>
+      <link>https://newyork.craigslist.org/que/sub/d/astoria-furnished-sublet/999111.html</link>
+      <description><![CDATA[$2100 furnished whole place in Astoria available 2026-10-01 for two months.]]></description>
+    </item>
+    <item>
+      <title>Furnished room Jackson Heights - $1800</title>
+      <link>https://newyork.craigslist.org/que/roo/d/jackson-heights-room/999222.html</link>
+      <description><![CDATA[$1800 furnished private room in Jackson Heights available Oct 3.]]></description>
+    </item>
+  </channel>
+</rss>
+

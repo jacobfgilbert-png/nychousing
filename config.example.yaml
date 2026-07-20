@@ -38,6 +38,28 @@ gmail:
     - 'from:(leasebreak.com) newer_than:7d'
     - '("sublet" OR "furnished apartment" OR "furnished room" OR "short term rental" OR "temporary housing" OR "room available") newer_than:7d'
 
+web_sources:
+  enabled: true
+  rss_feeds:
+    - name: "Craigslist NYC sublets furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/sub?query=furnished%20sublet&max_price=2500&availabilityMode=0&format=rss"
+    - name: "Craigslist NYC rooms furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/roo?query=furnished%20room&max_price=2500&availabilityMode=0&format=rss"
+    - name: "Craigslist Astoria furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/sub?query=astoria%20furnished&max_price=2500&availabilityMode=0&format=rss"
+    - name: "Craigslist Inwood furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/sub?query=inwood%20furnished&max_price=2500&availabilityMode=0&format=rss"
+    - name: "Craigslist Jackson Heights furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/sub?query=jackson%20heights%20furnished&max_price=2500&availabilityMode=0&format=rss"
+    - name: "Craigslist Forest Hills furnished"
+      source: "craigslist"
+      url: "https://newyork.craigslist.org/search/sub?query=forest%20hills%20furnished&max_price=2500&availabilityMode=0&format=rss"
+
 google_sheets:
   enabled: true
   spreadsheet_name: "NYC Sublet Finder"

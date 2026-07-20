@@ -62,6 +62,9 @@ class RealSheetsClient:
     def existing_raw_source_ids(self) -> set[str]:
         return {str(row.get("raw_source_id", "")) for row in self._existing_rows_by_listing_id().values() if row.get("raw_source_id")}
 
+    def existing_listing_ids(self) -> set[str]:
+        return set(self._existing_rows_by_listing_id())
+
     def _existing_rows_by_listing_id(self) -> dict[str, dict]:
         response = self.sheets.spreadsheets().values().get(spreadsheetId=self.spreadsheet_id, range="Listings!A:Z").execute()
         values = response.get("values", [])

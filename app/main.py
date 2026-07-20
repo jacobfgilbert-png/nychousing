@@ -17,6 +17,7 @@ from app.outbox import mark_sent, prepare_outbox
 from app.parsers import parse_craigslist, parse_generic, parse_manual, parse_streeteasy
 from app.scoring import score_listing
 from app.sheets_client import MemorySheetsClient, MissingSheetsCredentials, RealSheetsClient
+from app.source_client import fetch_configured_source_listings
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,11 +93,12 @@ def main(argv: list[str] | None = None) -> int:
 def run_once(config: AppConfig, conn, dry_run: bool) -> int:
     client = FixtureGmailClient(config.root / "tests" / "fixtures") if dry_run else RealGmailClient()
     already_synced_raw_ids: set[str] = set()
+    already_synced_listing_ids: set[str] = set()
     if not dry_run and config.section("google_sheets").get("enabled"):
         sheets_config = config.section("google_sheets")
-        already_synced_raw_ids = RealSheetsClient(
-            sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id")
-        ).existing_raw_source_ids()
+        sheets_client = RealSheetsClient(sheets_config["spreadsheet_name"], spreadsheet_id=sheets_config.get("spreadsheet_id"))
+        already_synced_raw_ids = sheets_client.existing_raw_source_ids()
+        already_synced_listing_ids = sheets_client.existing_listing_ids()
     new_listings: list[Listing] = []
     gmail_config = config.section("gmail")
     fetched_emails = client.fetch_messages(gmail_config["queries"], int(gmail_config.get("max_messages_per_query", 500)))
@@ -122,6 +124,24 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
     print(
         f"Scanned {len(fetched_emails)} Gmail messages; skipped {skipped_non_housing} non-housing; "
         f"skipped {skipped_seen} already-seen; processed {len(new_listings)} listings."
+    )
+    source_listings, source_stats = fetch_configured_source_listings(
+        config.section("web_sources"), fixture_dir=(config.root / "tests" / "fixtures" / "sources" if dry_run else None)
+    )
+    processed_sources = []
+    skipped_existing_sources = 0
+    for listing in process_listings(source_listings, config):
+        if listing.listing_id in already_synced_listing_ids:
+            skipped_existing_sources += 1
+            continue
+        if not dry_run:
+            db.upsert_listing(conn, listing)
+        processed_sources.append(listing)
+    new_listings.extend(processed_sources)
+    print(
+        f"Scanned {source_stats.fetched_sources} web sources; fetched {source_stats.fetched_items} source items; "
+        f"failed {source_stats.failed_sources} sources; skipped {skipped_existing_sources} already-seen source listings; "
+        f"processed {len(processed_sources)} source listings."
     )
     print_summary(new_listings, dry_run=dry_run)
     return 0
