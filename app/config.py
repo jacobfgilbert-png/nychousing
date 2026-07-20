@@ -80,6 +80,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
             },
         ],
     },
+    "bulk_import": {"enabled": True, "import_dir": "data/imports"},
     "google_sheets": {"enabled": True, "spreadsheet_name": "NYC Sublet Finder"},
     "notifications": {"email_digest": True, "immediate_min_score": 85, "digest_min_score": 70},
 }

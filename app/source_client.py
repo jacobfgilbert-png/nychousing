@@ -59,6 +59,8 @@ def parse_rss_feed(xml_text: str, source: str = "rss") -> list[Listing]:
 
 def _read_feed(url: str, fixture_dir: Path | None = None) -> str:
     if fixture_dir is not None:
+        if "://" in url:
+            raise FileNotFoundError(f"fixture not found for {url}")
         fixture_path = fixture_dir / url
         return fixture_path.read_text(encoding="utf-8")
     request = urllib.request.Request(

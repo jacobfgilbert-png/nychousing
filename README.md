@@ -6,6 +6,7 @@ Local Python 3.12 MVP for finding furnished NYC sublets for an Oct 1, 2026 move-
 
 - Reads Gmail alerts or local fixture emails.
 - Parses Craigslist, StreetEasy, Leasebreak, newsletters, and manual pasted text.
+- Bulk-imports CSV, TSV, JSON, JSONL, RSS/XML, HTML, and text listing exports from `data/imports`.
 - Normalizes listings into one model.
 - Filters only clear failures: over budget, unfurnished, incompatible dates, or rejected commute.
 - Scores promising listings from 0-100.
@@ -33,6 +34,8 @@ Edit `config.yaml`, especially `messaging.phone_number`.
 python -m app.main run-once
 python -m app.main run-once --dry-run
 python -m app.main import-text
+python -m app.main import-file path/to/listings.csv
+python -m app.main import-dir path/to/import-folder
 python -m app.main list-new
 python -m app.main show LISTING_ID
 python -m app.main mark-contacted LISTING_ID
@@ -78,6 +81,10 @@ For Facebook or copied listing text:
 ```bash
 python -m app.main import-text < pasted-listing.txt
 ```
+
+For high-volume sources that block GitHub or do not offer an API, export or save listings into `data/imports`.
+Supported file types are `.csv`, `.tsv`, `.json`, `.jsonl`, `.rss`, `.xml`, `.html`, `.htm`, `.txt`, and `.md`.
+Hourly runs automatically import that folder, score the listings, and sync them to Google Sheets.
 
 ## Google Sheet
 

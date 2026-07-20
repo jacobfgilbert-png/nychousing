@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from app import db
+from app.bulk_import import import_bulk_dir, import_bulk_file, import_configured_bulk_listings
 from app.config import AppConfig, load_config
 from app.dedupe import is_duplicate
 from app.draft_message import build_message
@@ -28,6 +29,10 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run-once")
     run.add_argument("--dry-run", action="store_true")
     sub.add_parser("import-text")
+    import_file = sub.add_parser("import-file")
+    import_file.add_argument("path")
+    import_dir = sub.add_parser("import-dir")
+    import_dir.add_argument("path")
     sub.add_parser("list-new")
     show = sub.add_parser("show")
     show.add_argument("listing_id")
@@ -56,6 +61,23 @@ def main(argv: list[str] | None = None) -> int:
             listings = process_listings(parse_manual(text), config)
             for listing in listings:
                 db.upsert_listing(conn, listing)
+            print_summary(listings, dry_run=False)
+            return 0
+        if args.command == "import-file":
+            listings = process_listings(import_bulk_file(Path(args.path)), config)
+            for listing in listings:
+                db.upsert_listing(conn, listing)
+            print_summary(listings, dry_run=False)
+            return 0
+        if args.command == "import-dir":
+            imported, stats = import_bulk_dir(Path(args.path))
+            listings = process_listings(imported, config)
+            for listing in listings:
+                db.upsert_listing(conn, listing)
+            print(
+                f"Bulk import scanned {stats.scanned_files} files; imported {stats.imported_items} raw items; "
+                f"failed {stats.failed_files} files; processed {len(listings)} listings."
+            )
             print_summary(listings, dry_run=False)
             return 0
         if args.command == "list-new":
@@ -142,6 +164,22 @@ def run_once(config: AppConfig, conn, dry_run: bool) -> int:
         f"Scanned {source_stats.fetched_sources} web sources; fetched {source_stats.fetched_items} source items; "
         f"failed {source_stats.failed_sources} sources; skipped {skipped_existing_sources} already-seen source listings; "
         f"processed {len(processed_sources)} source listings."
+    )
+    bulk_listings, bulk_stats = import_configured_bulk_listings(config.section("bulk_import"), config.root)
+    processed_bulk = []
+    skipped_existing_bulk = 0
+    for listing in process_listings(bulk_listings, config):
+        if listing.listing_id in already_synced_listing_ids:
+            skipped_existing_bulk += 1
+            continue
+        if not dry_run:
+            db.upsert_listing(conn, listing)
+        processed_bulk.append(listing)
+    new_listings.extend(processed_bulk)
+    print(
+        f"Bulk import scanned {bulk_stats.scanned_files} files; imported {bulk_stats.imported_items} raw items; "
+        f"failed {bulk_stats.failed_files} files; skipped {skipped_existing_bulk} already-seen bulk listings; "
+        f"processed {len(processed_bulk)} bulk listings."
     )
     print_summary(new_listings, dry_run=dry_run)
     return 0
